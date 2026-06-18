@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BIA Input Form — TM BCM PMO</title>
+<style>
+:root {
+  --blue:#1565c0; --dark:#0d2137; --nav:#1e3a5f;
+  --red:#e53935; --yellow:#f9a825; --green:#43a047;
+  --bg:#f0f4f8; --card:#fff; --border:#e2e8f0; --muted:#64748b; --text:#1a202c;
+  --cyan:#00bcd4;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── HEADER ── */
+header{background:var(--dark);color:#fff;padding:16px 28px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+header .logo{font-size:26px;font-weight:800;color:var(--cyan);}
+header h1{font-size:16px;font-weight:600;}
+header p{font-size:11px;color:#90caf9;margin-top:2px;}
+
+/* ── LAYOUT ── */
+.layout{display:flex;min-height:calc(100vh - 64px);}
+
+/* ── SIDEBAR ── */
+.sidebar{width:240px;background:var(--nav);flex-shrink:0;padding:20px 0;}
+.sidebar-title{color:#90caf9;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:0 20px 10px;}
+.step-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;transition:.2s;border-left:3px solid transparent;}
+.step-item:hover{background:rgba(255,255,255,.06);}
+.step-item.active{background:rgba(0,188,212,.12);border-left-color:var(--cyan);}
+.step-item.done .step-num{background:var(--green);color:#fff;}
+.step-num{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.15);color:#90caf9;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step-item.active .step-num{background:var(--cyan);color:#fff;}
+.step-label{font-size:12px;color:#90caf9;line-height:1.3;}
+.step-item.active .step-label{color:#fff;font-weight:600;}
+
+/* ── MAIN CONTENT ── */
+.content{flex:1;padding:28px 32px;overflow-y:auto;}
+.section-header{margin-bottom:24px;}
+.section-header h2{font-size:20px;font-weight:700;color:var(--text);}
+.section-header p{font-size:13px;color:var(--muted);margin-top:4px;}
+
+/* ── CARD ── */
+.card{background:var(--card);border-radius:12px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:20px;}
+.card-title{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+
+/* ── FORM ELEMENTS ── */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:14px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;}
+.form-group input,.form-group select,.form-group textarea{
+  padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;
+  font-family:inherit;background:#fff;color:var(--text);transition:.15s;
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+  outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(21,101,192,.12);
+}
+.form-group textarea{resize:vertical;min-height:72px;}
+
+/* ── DYNAMIC TABLE ── */
+.tbl-wrap{overflow-x:auto;margin-bottom:12px;}
+table.dyn{width:100%;border-collapse:collapse;font-size:12px;min-width:600px;}
+table.dyn th{background:#f1f5f9;padding:9px 10px;text-align:left;font-weight:600;color:var(--muted);border-bottom:2px solid var(--border);white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:.3px;}
+table.dyn td{padding:5px 6px;border-bottom:1px solid var(--border);vertical-align:middle;}
+table.dyn tr:last-child td{border-bottom:none;}
+table.dyn input,table.dyn select,table.dyn textarea{
+  width:100%;padding:6px 8px;border:1.5px solid var(--border);border-radius:5px;
+  font-size:12px;font-family:inherit;background:#fff;
+}
+table.dyn input:focus,table.dyn select:focus,table.dyn textarea:focus{
+  outline:none;border-color:var(--blue);
+}
+table.dyn textarea{min-height:52px;resize:vertical;}
+.btn-del{background:#ffebee;color:var(--red);border:none;border-radius:5px;padding:5px 9px;cursor:pointer;font-size:13px;font-weight:700;}
+.btn-del:hover{background:#ffcdd2;}
+.btn-add{background:#e8f5e9;color:#2e7d32;border:none;border-radius:7px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;}
+.btn-add:hover{background:#c8e6c9;}
+
+/* ── SCORING GRID ── */
+.score-grid{overflow-x:auto;}
+table.score{border-collapse:collapse;font-size:12px;}
+table.score th,table.score td{padding:7px 10px;border:1px solid var(--border);text-align:center;white-space:nowrap;}
+table.score th{background:#f1f5f9;font-weight:600;color:var(--muted);font-size:11px;}
+table.score .row-label{text-align:left;font-weight:600;background:#f8fafc;min-width:130px;}
+table.score .cat-label{text-align:left;font-size:11px;color:var(--muted);min-width:110px;}
+table.score input[type=number]{width:52px;padding:5px;border:1.5px solid var(--border);border-radius:4px;text-align:center;font-size:12px;}
+table.score input[type=number]:focus{outline:none;border-color:var(--blue);}
+.score-total{font-weight:700;color:var(--blue);}
+.score-final{font-weight:700;}
+.score-red{color:var(--red);}
+.score-yellow{color:#f57f17;}
+.score-green{color:var(--green);}
+
+/* ── NAV BUTTONS ── */
+.nav-btns{display:flex;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border);}
+.btn-primary{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;}
+.btn-primary:hover{background:#1976d2;}
+.btn-secondary{background:#f1f5f9;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;}
+.btn-secondary:hover{background:#e2e8f0;}
+.btn-success{background:var(--green);color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;}
+
+/* ── REVIEW ── */
+.review-section{margin-bottom:20px;}
+.review-section h3{font-size:14px;font-weight:700;color:var(--blue);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--border);}
+.review-table{width:100%;border-collapse:collapse;font-size:12px;}
+.review-table th{background:#f1f5f9;padding:8px 10px;text-align:left;font-weight:600;color:var(--muted);border-bottom:2px solid var(--border);}
+.review-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+
+/* ── BADGE ── */
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;}
+.badge-crit{background:#ffebee;color:var(--red);}
+.badge-imp{background:#fff8e1;color:#f57f17;}
+.badge-mod{background:#e8f5e9;color:#2e7d32;}
+
+/* ── SAVE INDICATOR ── */
+.save-bar{position:fixed;bottom:20px;right:24px;background:var(--dark);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;opacity:0;transition:.3s;pointer-events:none;z-index:999;}
+.save-bar.show{opacity:1;}
+
+/* ── PROGRESS ── */
+.progress-bar{height:4px;background:var(--border);border-radius:2px;margin-bottom:20px;}
+.progress-fill{height:100%;background:var(--cyan);border-radius:2px;transition:.3s;}
+
+@media(max-width:768px){.sidebar{display:none;}.content{padding:16px;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">TM</div>
+  <div>
+    <h1>Business Impact Analysis (BIA) — Input Form</h1>
+    <p>BCM PMO | Fill in your BIA data section by section</p>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-title">BIA Sections</div>
+    <div id="stepNav"></div>
+  </aside>
+
+  <div class="content">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div id="stepContent"></div>
+  </div>
+</div>
+
+<div class="save-bar" id="saveBar">✓ Progress saved</div>
+
+<script>
+// ─── STEP DEFINITIONS ────────────────────────────────────────────────────────
+const STEPS = [
+  { id:'cover',   label:'Cover & Info',          icon:'📋' },
+  { id:'bf',      label:'1.0 Business Functions', icon:'🏢' },
+  { id:'interdep',label:'2.0 Interdependencies',  icon:'🔗' },
+  { id:'people',  label:'3.1 People',             icon:'👥' },
+  { id:'vital',   label:'3.2 Vital Records',      icon:'📁' },
+  { id:'appsys',  label:'3.3 App Systems',        icon:'💻' },
+  { id:'network', label:'3.4 Network Equipment',  icon:'🌐' },
+  { id:'impact',  label:'4.1 Impact Rating',      icon:'📊' },
+  { id:'recovery',label:'5.0 Recovery Objectives',icon:'🔄' },
+  { id:'risk',    label:'6.0 Risk Assessment',    icon:'⚠️' },
+  { id:'strategy',label:'7.0 Strategy',           icon:'🎯' },
+  { id:'review',  label:'Review & Export',        icon:'✅' },
+];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let current = 0;
+let data = loadData();
+
+function loadData() {
+  try { return JSON.parse(localStorage.getItem('bia_form_data')) || defaultData(); }
+  catch { return defaultData(); }
+}
+function defaultData() {
+  return {
+    cover: { buName:'', teamName:'', preparedBy:'', preparedDate:'', reviewedBy:'', version:'' },
+    bf: [{ name:'', description:'', location:'', remarks:'' }],
+    interdep: [{ bf:'', dependency:'', criticality:'High', description:'' }],
+    people: [{ bu:'', bf:'', minStaff:'', name:'', role:'', designation:'', officeContact:'', mobile:'', vitalRecord:'Y', numPC:'', numTerminal:'', otherResources:'', primarySite:'', altSite:'' }],
+    vital: [{ bu:'', bf:'', docName:'', docLocation:'', docOwner:'' }],
+    appsys: [{ bu:'', bf:'', sysName:'', type:'Client Based', ipAddress:'', numServer:'', serverLocation:'', backupType:'', webEnabled:'N', mainContract:'Y', vendor:'', availability:'', rto:'', rpo:'', mbco:'', mtpd:'' }],
+    network: [{ bf:'', equipment:'', criticality:'High', spare:'N', mainContract:'Y', vendor:'', numMain:1, numBackup:0, numSpare:0, location:'', owner:'', keyPerson:'' }],
+    impact: [],   // built from bf list
+    recovery: [], // built from bf list
+    risk: [{ name:'', description:'', rootCause:'', existingControl:'', likelihood:'Unlikely', impact:'Moderate', rating:'', treatment:'Treat', additionalControl:'', pic:'' }],
+    strategy: { systemAvailExisting:'', systemAvailAdditional:'', recoveryExisting:'', recoveryAdditional:'', networkExisting:'', networkAdditional:'', workplaceExisting:'' },
+  };
+}
+function saveData() {
+  localStorage.setItem('bia_form_data', JSON.stringify(data));
+  const bar = document.getElementById('saveBar');
+  bar.classList.add('show');
+  setTimeout(()=>bar.classList.remove('show'), 1800);
+}
+
+// ─── SIDEBAR ─────────────────────────────────────────────────────────────────
+function renderSidebar() {
+  const nav = document.getElementById('stepNav');
+  nav.innerHTML = STEPS.map((s,i) => `
+    <div class="step-item ${i===current?'active':''}" onclick="goTo(${i})">
+      <div class="step-num">${i===current?'▶':i+1}</div>
+      <div class="step-label">${s.icon} ${s.label}</div>
+    </div>`).join('');
+  const pct = Math.round((current/(STEPS.length-1))*100);
+  document.getElementById('progressFill').style.width = pct+'%';
+}
+
+// ─── NAV ─────────────────────────────────────────────────────────────────────
+function goTo(i) { saveData(); current=i; render(); }
+function next() { saveData(); if(current<STEPS.length-1){current++;render();} }
+function prev() { saveData(); if(current>0){current--;render();} }
+
+// ─── DYNAMIC TABLE HELPERS ────────────────────────────────────────────────────
+function rowBtns(arrKey, i) {
+  return `<button class="btn-del" onclick="delRow('${arrKey}',${i})">✕</button>`;
+}
+function addRow(arrKey, template) {
+  data[arrKey].push({...template});
+  saveData(); render();
+}
+function delRow(arrKey, i) {
+  if(data[arrKey].length===1) return;
+  data[arrKey].splice(i,1);
+  saveData(); render();
+}
+function bind(arrKey, i, field, el) {
+  data[arrKey][i][field] = el.value;
+}
+function bindObj(objKey, field, el) {
+  data[objKey][field] = el.value;
+}
+
+// ─── BF OPTIONS HELPER ───────────────────────────────────────────────────────
+function bfOptions(selected='') {
+  return data.bf.map(b=>`<option value="${esc(b.name)}" ${b.name===selected?'selected':''}>${esc(b.name)||'(unnamed)'}</option>`).join('');
+}
+
+// ─── IMPACT SYNC ─────────────────────────────────────────────────────────────
+function syncImpact() {
+  const cats = ['Financial Loss','Regulatory/Legal','Reputation','Product/Service Quality','Customers','Operation'];
+  const times = ['4 Hours','8 Hours','24 Hours','72 Hours','>1 Week'];
+  data.bf.forEach(b => {
+    if (!data.impact.find(x=>x.bf===b.name)) {
+      const scores = {};
+      cats.forEach(c=>{ scores[c]={}; times.forEach(t=>scores[c][t]=0); });
+      data.impact.push({ bf:b.name, scores });
+    }
+  });
+  data.recovery.forEach && null;
+  data.bf.forEach(b => {
+    if (!data.recovery.find(x=>x.bf===b.name))
+      data.recovery.push({ bf:b.name, rto:'', rpo:'', mbco:'', mtpd:'', justification:'' });
+  });
+}
+
+// ─── SCORE CALC ──────────────────────────────────────────────────────────────
+function calcFinal(impObj) {
+  const cats = Object.values(impObj.scores);
+  const times = ['4 Hours','8 Hours','24 Hours','72 Hours','>1 Week'];
+  let totalMax=0, totalActual=0;
+  cats.forEach(c => { times.forEach(t => { totalActual+=Number(c[t]||0); totalMax+=5; }); });
+  return totalMax>0 ? totalActual/totalMax : 0;
+}
+function critLabel(score) {
+  if(score>0.8) return {label:'Absolutely Critical',cls:'score-red',badge:'badge-crit'};
+  if(score>0.6) return {label:'Important',cls:'score-yellow',badge:'badge-imp'};
+  return {label:'Moderate',cls:'score-green',badge:'badge-mod'};
+}
+
+// ─── ESC ─────────────────────────────────────────────────────────────────────
+function esc(s='') { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function render() {
+  syncImpact();
+  renderSidebar();
+  const el = document.getElementById('stepContent');
+  el.innerHTML = STEPS[current].id === 'cover'    ? renderCover()
+               : STEPS[current].id === 'bf'       ? renderBF()
+               : STEPS[current].id === 'interdep' ? renderInterdep()
+               : STEPS[current].id === 'people'   ? renderPeople()
+               : STEPS[current].id === 'vital'    ? renderVital()
+               : STEPS[current].id === 'appsys'   ? renderAppSys()
+               : STEPS[current].id === 'network'  ? renderNetwork()
+               : STEPS[current].id === 'impact'   ? renderImpact()
+               : STEPS[current].id === 'recovery' ? renderRecovery()
+               : STEPS[current].id === 'risk'     ? renderRisk()
+               : STEPS[current].id === 'strategy' ? renderStrategy()
+               : renderReview();
+  el.scrollTop = 0;
+}
+
+// ─── SECTION RENDERERS ────────────────────────────────────────────────────────
+
+function navBtns(showPrev=true) {
+  return `<div class="nav-btns">
+    ${showPrev?`<button class="btn-secondary" onclick="prev()">← Previous</button>`:''}
+    <button class="btn-primary" onclick="next()">${current===STEPS.length-2?'Review →':'Next →'}</button>
+    <button class="btn-secondary" onclick="saveData()" style="margin-left:auto">💾 Save</button>
+  </div>`;
+}
+
+function renderCover() {
+  const c = data.cover;
+  return `
+  <div class="section-header"><h2>📋 Cover & General Information</h2><p>Provide details about your business unit and the person completing this BIA.</p></div>
+  <div class="card">
+    <div class="card-title">Business Unit Details</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Business Unit (BU) Name</label><input value="${esc(c.buName)}" oninput="data.cover.buName=this.value" placeholder="e.g. MCO"></div>
+      <div class="form-group"><label>Team / Department</label><input value="${esc(c.teamName)}" oninput="data.cover.teamName=this.value" placeholder="e.g. IPBC Operations"></div>
+      <div class="form-group"><label>Prepared By</label><input value="${esc(c.preparedBy)}" oninput="data.cover.preparedBy=this.value" placeholder="Full name"></div>
+      <div class="form-group"><label>Date Prepared</label><input type="date" value="${esc(c.preparedDate)}" oninput="data.cover.preparedDate=this.value"></div>
+      <div class="form-group"><label>Reviewed By</label><input value="${esc(c.reviewedBy)}" oninput="data.cover.reviewedBy=this.value" placeholder="Full name"></div>
+      <div class="form-group"><label>Version</label><input value="${esc(c.version)}" oninput="data.cover.version=this.value" placeholder="e.g. 1.0"></div>
+    </div>
+  </div>
+  ${navBtns(false)}`;
+}
+
+function renderBF() {
+  const rows = data.bf.map((r,i)=>`<tr>
+    <td style="text-align:center;color:var(--muted);font-weight:600">${i+1}</td>
+    <td><input value="${esc(r.name)}" oninput="data.bf[${i}].name=this.value" placeholder="Function name"></td>
+    <td><textarea oninput="data.bf[${i}].description=this.value" placeholder="Describe the function">${esc(r.description)}</textarea></td>
+    <td><select oninput="data.bf[${i}].location=this.value">
+      <option value="CBJ" ${r.location==='CBJ'?'selected':''}>CBJ</option>
+      <option value="TTDI" ${r.location==='TTDI'?'selected':''}>TTDI</option>
+      <option value="KL" ${r.location==='KL'?'selected':''}>KL</option>
+      <option value="Other" ${r.location==='Other'?'selected':''}>Other</option>
+    </select></td>
+    <td><input value="${esc(r.remarks)}" oninput="data.bf[${i}].remarks=this.value" placeholder="Appliance / IT Server / etc."></td>
+    <td>${rowBtns('bf',i)}</td>
+  </tr>`).join('');
+  return `
+  <div class="section-header"><h2>🏢 1.0 Business Functions</h2><p>List all business functions under your Business Unit.</p></div>
+  <div class="card">
+    <div class="tbl-wrap"><table class="dyn">
+      <thead><tr><th>#</th><th>Business Function</th><th>Description</th><th>Location</th><th>Type / Remarks</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <button class="btn-add" onclick="addRow('bf',{name:'',description:'',location:'CBJ',remarks:''})">+ Add Row</button>
+  </div>
+  ${navBtns()}`;
+}
+
+function renderInterdep() {
+  const rows = data.interdep.map((r,i)=>`<tr>
+    <td><select oninput="data.interdep[${i}].bf=this.value">${bfOptions(r.bf)}</select></td>
+    <td><input value="${esc(r.dependency)}" oninput="data.interdep[${i}].dependency=this.value" placeholder="System / Service depended upon"></td>
+    <td><select oninput="data.interdep[${i}].criticality=this.value">
+      <option ${r.criticality==='High'?'selected':''}>High</option>
+      <option ${r.criticality==='Medium'?'selected':''}>Medium</option>
+      <option ${r.criticality==='Low'?'selected':''}>Low</option>
+    </select></td>
+    <td><textarea oninput="data.interdep[${i}].description=this.value" placeholder="Impact if dependency unavailable">${esc(r.description)}</textarea></td>
+    <td>${rowBtns('interdep',i)}</td>
+  </tr>`).join('');
+  return `
+  <div class="section-header"><h2>🔗 2.0 Interdependencies</h2><p>Identify what each business function depends on and the criticality of that dependency.</p></div>
+  <div class="card" style="background:#f0f7ff;border:1px solid #bbdefb;margin-bottom:16px">
+    <b style="font-size:13px">Criticality Guide:</b>
+    <span style="font-size:12px;color:var(--muted);margin-left:8px"><b>High</b> = absolutely dependent (critical impact) &nbsp;|&nbsp; <b>Medium</b> = dependent (some impact) &nbsp;|&nbsp; <b>Low</b> = not dependent (negligible impact)</span>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap"><table class="dyn">
+      <thead><tr><th>Business Function</th><th>Dependency (System/Service/People)</th><th>Criticality</th><th>Impact if Unavailable</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <button class="btn-add" onclick="addRow('interdep',{bf:'',dependency:'',criticality:'High',description:''})">+ Add Row</button>
+  </div>
+  ${navBtns()}`;
+}
+
+function renderPeople() {
+  const rows = data.people.map((r,i)=>`<tr>
+    <td><input value="${esc(r.bu)}" oninput="data.people[${i}].bu=this.value" placeholder="BU"></td>
+    <td><select oninput="data.people[${i}].bf=this.value">${bfOptions(r.bf)}</select></td>
+    <td><input value="${esc(r.minStaff)}" oninput="data.people[${i}].minStaff=this.value" placeholder="e.g. 4"></td>
+    <td><input value="${esc(r.name)}" oninput="data.people[${i}].name=this.value" placeholder="Name"></td>
+    <td><textarea oninput="data.people[${i}].role=this.value" placeholder="Roles & responsibilities">${esc(r.role)}</textarea></td>
+    <td><input value="${esc(r.designation)}" oninput="data.people[${i}].designation=this.value" placeholder="e.g. Manager"></td>
+    <td><input value="${esc(r.officeContact)}" oninput="data.people[${i}].officeContact=this.value" placeholder="Office"></td>
+    <td><input value="${esc(r.mobile)}" oninput="data.people[${i}].mobile=this.value" placeholder="Mobile"></td>
+    <td><select oninput="data.people[${i}].vitalRecord=this.value">
+      <option ${r.vitalRecord==='Y'?'selected':''}>Y</option>
+      <option ${r.vitalRecord==='N'?'selected':''}>N</option>
+    </select></td>
+    <td><input value="${esc(r.numPC)}" oninput="data.people[${i}].numPC=this.value" placeholder="#"></td>
+    <td><input value="${esc(r.primarySite)}" oninput="data.people[${i}].primarySite=this.value" placeholder="e.g. Cyberjaya"></td>
+    <td><input value="${esc(r.altSite)}" oninput="data.people[${i}].altSite=this.value" placeholder="e.g. TTDI"></td>
+    <td>${rowBtns('people',i)}</td>
+  </tr>`).join('');
+  return `
+  <div class="section-header"><h2>👥 3.1 People</h2><p>Describe workforce resources supporting each business function.</p></div>
+  <div class="card">
+    <div class="tbl-wrap"><table class="dyn">
+      <thead><tr><th>BU</th><th>Business Function</th><th>Min Staff</th><th>Name</th><th>Role & Responsibilities</th><th>Designation</th><th>Office</th><th>Mobile</th><th>Vital Rec?</th><th># PC</th><th>Primary Site</th><th>Alt Site</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <button class="btn-add" onclick="addRow('people',{bu:'',bf:'',minStaff:'',name:'',role:'',designation:'',officeContact:'',mobile:'',vitalRecord:'Y',numPC:'',numTerminal:'',otherResources:'',primarySite:'',altSite:''})">+ Add Row</button>
+  </div>
+  ${navBtns()}`;
+}
+
+function renderVital() {
+  const rows = data.vital.map((r,i)=>`<tr>
+    <td><input value="${esc(r.bu)}" oninput="data.vital[${i}].bu=this.value" placeholder="BU"></td>
+    <td><select oninput="data.vital[${i}].bf=this.value">${bfOptions(r.bf)}</select></td>
+    <td><input value="${esc(r.docName)}" oninput="data.vital[${i}].docName=this.value" placeholder="Document / file name"></td>
+    <td><input value="${esc(r.docLocation)}" oninput="data.vital[${i}].docLocation=this.value" placeholder="e.g. NOCGRID, SharePoint"></td>
+    <td><input value="${esc(r.docOwner)}" oninput="data.vital[${i}].docOwner=this.value" placeholder="Owner"></td>
+    <td>${rowBtns('vital',i)}</td>
+  </tr>`).join('');
+  return `
+  <div class="section-header"><h2>📁 3.2 Vital Records</h2><p>List critical documents required to support business continuity.</p></div>
+  <div class="card">
+    <div class="tbl-wrap"><table class="dyn">
+      <thead><tr><th>BU</th><th>Business Function</th><th>Document Name</th><th>Document Location</th><th>Document Owner</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <button class="btn-add" onclick="addRow('vital',{bu:'',bf:'',docName:'',docLocation:'',docOwner:''})">+ Add Row</button>
+  </div>
+  ${navBtns()}`;
+}
+
+function renderAppSys() {
+  const rows = data.appsys.map((r,i)=>`<tr>
+    <td><input value="${esc(r.bu)}" oninput="data.appsys[${i}].bu=this.value" placeholder="BU"></td>
+    <td><select oninput="data.appsys[${i}].bf=this.value">${bfOptions(r.bf)}</select></td>
+    <td><input value="${esc(r.sysName)}" oninput="data.appsys[${i}].sysName=this.value" placeholder="System name"></td>
+    <td><select oninput="data.appsys[${i}].type=this.value">
+      <option ${r.type==='Client Based'?'selected':''}>Client Based</option>
+      <option ${r.type==='Web Based'?'selected':''}>Web Based</option>
+      <option ${r.type==='Hybrid'?'selected':''}>Hybrid</option>
+    </select></td>
+    <td><input value="${esc(r.serverLocation)}" oninput="data.appsys[${i}].serverLocation=this.value" placeholder="e.g. CBJ"></td>
+    <td><input value="${esc(r.vendor)}" oninput="data.appsys[${i}].vendor=this.value" placeholder="Vendor"></td>
+    <td><select oninput="data.appsys[${i}].mainContract=this.value">
+      <option ${r.mainContract==='Y'?'selected':''}>Y</option>
+      <option ${r.mainContract==='N'?'selected':''}>N</option>
+    </select></td>
+    <td><input value="${esc(r.rto)}" oninput="data.appsys[${i}].rto=this.value" placeholder="e.g. 3hrs"></td>
+    <td><input value="${esc(r.rpo)}" oninput="data.appsys[${i}].rpo=this.value" placeholder="e.g. &lt;30 Mins"></td>
+    <td><input value="${esc(r.mbco)}" oninput="data.appsys[${i}].mbco=this.value" placeholder="e.g. 30%"></td>
+    <td><input value="${esc(r.mtpd)}" oninput="data.appsys[${i}].mtpd=this.value" placeholder="e.g. 4hrs"></td>
+    <td>${rowBtns('appsys',i)}</td>
+  </tr>`).join('');
+  return `
+  <div class="section-header"><h2>💻 3.3 Application Systems</h2><p>List all application systems used to support business functions.</p></div>
+  <div class="card">
+    <div class="tbl-wrap"><table class="dyn">
+      <thead><tr><th>BU</th><th>Business Function</th><th>System Name</th><th>Type</th><th>Server Location</th><th>Vendor</th><th>Maint Contract</th><th>RTO</th><th>RPO</th><th>MBCO</th><th>MTPD</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <button class="btn-add" onclick="addRow('appsys',{bu:'',bf:'',sysName:'',type:'Client Based',ipAddress:'',numServer:'',serverLocation:'',backupType:'',webEnabled:'N',mainContract:'Y',vendor:'',availability:'',rto:'',rpo:'',mbco:'',mtpd:''})">+ Add Row</button>
+  </div>
+  ${navBtns()}`;
+}
+
+function renderNetwork() {
+  const rows = data.network.map((r,i)=>`<tr>
+    <td><select oninput="data.network[${i}].bf=this.value">${bfOptions(r.bf)}</select></td>
+    <td><input value="${esc(r.equipment)}" oninput="data.network[${i}].equipment=this.value" placeholder="Equipment / element name"></td>
+    <td><select oninput="data.network[${i}].criticality=this.value">
+      <option ${r.criticality==='High'?'selected':''}>High</option>
+      <option ${r.criticality==='Medium'?'selected':''}>Medium</option>
+      <option ${r.criticality==='Low'?'selected':''}>Low</option>
+    </select></td>
+    <td><select oninput="data.network[${i}].spare=this.value"><option ${r.spare==='Y'?'selected':''}>Y</option><option ${r.spare==='N'?'selected':''}>N</option></select></td>
+    <td><select oninput="data.network[${i}].mainContract=this.value"><option ${r.mainContract==='Y'?'selected':''}>Y</option><option ${r.mainContract==='N'?'selected':''}>N</option></select></td>
+    <td><input value="${esc(r.vendor)}" oninput="data.network[${i}].vendor=this.value" placeholder="Vendor"></td>
+    <td><input type="number" min="0" value="${r.numMain}" oninput="data.network[${i}].numMain=this.value" style="width:55px"></td>
+    <td><input type="number" min="0" value="${r.numBackup}" oninput="data.network[${i}].numBackup=this.value" style="width:55px"></td>
+    <td><input value="${esc(r.location)}" oninput="data.network[${i}].location=this.value" placeholder="CBJ/TTDI"></td>
+    <td><input value="${esc(r.owner)}" oninput="data.network[${i}].owner=this.value" placeholder="Owner"></td>
+    <td><input value="${esc(r.keyPerson)}" oninput="data.network[${i}].keyPerson=this.value" placeholder="Key person"></td>
+    <td>${rowBtns('network',i)}</td>
+  </tr>`).join('');
+  return `
+  <div class="section-header"><h2>🌐 3.4 Network Equipment</h2><p>List all network equipment supporting your business functions.</p></div>
+  <div class="card">
+    <div class="tbl-wrap"><table class="dyn">
+      <thead><tr><th>Business Function</th><th>Equipment</th><th>Criticality</th><th>Spare?</th><th>Maint Contract</th><th>Vendor</th><th>Main</th><th>Backup</th><th>Location</th><th>Owner</th><th>Key Person</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <button class="btn-add" onclick="addRow('network',{bf:'',equipment:'',criticality:'High',spare:'N',mainContract:'Y',vendor:'',numMain:1,numBackup:0,numSpare:0,location:'',owner:'',keyPerson:''})">+ Add Row</button>
+  </div>
+  ${navBtns()}`;
+}
+
+function renderImpact() {
+  const cats = ['Financial Loss','Regulatory/Legal','Reputation','Product/Service Quality','Customers','Operation'];
+  const times = ['4 Hours','8 Hours','24 Hours','72 Hours','>1 Week'];
+
+  const blocks = data.impact.filter(imp=>data.bf.find(b=>b.name===imp.bf)).map(imp => {
+    const final = calcFinal(imp);
+    const cl = critLabel(final);
+    const rows = cats.map(cat => {
+      const scoreInputs = times.map(t =>
+        `<td><input type="number" min="0" max="5" value="${imp.scores[cat]?.[t]??0}"
+          oninput="data.impact.find(x=>x.bf==='${esc(imp.bf)}').scores['${cat}']['${t}']=Number(this.value);updateScoreRow(this)"
+          title="1=Very Low, 2=Low, 3=Medium, 4=High, 5=Catastrophic"></td>`
+      ).join('');
+      const catTotal = times.reduce((s,t)=>s+Number(imp.scores[cat]?.[t]||0),0);
+      return `<tr><td class="cat-label">${cat}</td>${scoreInputs}<td class="score-total">${catTotal}</td></tr>`;
+    }).join('');
+
+    return `<div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="card-title" style="margin:0;border:0;padding:0">${esc(imp.bf)}</div>
+        <div>Final Score: <strong class="${cl.cls}">${(final*100).toFixed(1)}%</strong>
+          <span class="badge ${cl.badge}" style="margin-left:8px">${cl.label}</span></div>
+      </div>
+      <div style="background:#fffde7;border:1px solid #f9a825;border-radius:7px;padding:10px 14px;font-size:12px;color:#5d4037;margin-bottom:12px">
+        Score each cell 1–5: &nbsp; <b>1</b>=Very Low &nbsp; <b>2</b>=Low &nbsp; <b>3</b>=Medium &nbsp; <b>4</b>=High &nbsp; <b>5</b>=Catastrophic
+      </div>
+      <div class="score-grid"><table class="score">
+        <thead><tr><th class="row-label">Impact Category</th>${times.map(t=>`<th>${t}</th>`).join('')}<th>Total</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="section-header"><h2>📊 4.1 Criticality Impact Rating</h2><p>Score each business function across 6 impact categories at 5 time windows (0–5).</p></div>
+  ${blocks||'<div class="card" style="color:var(--muted)">No business functions defined yet. Please complete Section 1.0 first.</div>'}
+  ${navBtns()}`;
+}
+
+function updateScoreRow(el) {
+  render(); // re-render to update totals
+}
+
+function renderRecovery() {
+  const rows = data.recovery.filter(r=>data.bf.find(b=>b.name===r.bf)).map((r,i)=>`<tr>
+    <td style="font-weight:600">${esc(r.bf)}</td>
+    <td><input value="${esc(r.rto)}" oninput="data.recovery[${i}].rto=this.value" placeholder="e.g. 3 hours"></td>
+    <td><input value="${esc(r.rpo)}" oninput="data.recovery[${i}].rpo=this.value" placeholder="e.g. N/A or &lt;30 Mins"></td>
+    <td><input value="${esc(r.mbco)}" oninput="data.recovery[${i}].mbco=this.value" placeholder="e.g. 30%"></td>
+    <td><input value="${esc(r.mtpd)}" oninput="data.recovery[${i}].mtpd=this.value" placeholder="e.g. 4 hours"></td>
+    <td><textarea oninput="data.recovery[${i}].justification=this.value" placeholder="Justification for these targets">${esc(r.justification)}</textarea></td>
+  </tr>`).join('');
+
+  return `
+  <div class="section-header"><h2>🔄 5.0 Recovery Objectives</h2><p>Define recovery targets for each business function.</p></div>
+  <div class="card" style="background:#e8f5e9;border:1px solid #a5d6a7;margin-bottom:16px;font-size:12px;color:#1b5e20;">
+    <b>RTO</b> = Recovery Time Objective (target time to restore) &nbsp;|&nbsp;
+    <b>RPO</b> = Recovery Point Objective (acceptable data loss) &nbsp;|&nbsp;
+    <b>MBCO</b> = Minimum Business Continuity Objective (min service level %) &nbsp;|&nbsp;
+    <b>MTPD</b> = Maximum Tolerable Period of Disruption
+  </div>
+  <div class="card">
+    <div class="tbl-wrap"><table class="dyn">
+      <thead><tr><th>Business Function</th><th>RTO</th><th>RPO</th><th>MBCO</th><th>MTPD</th><th>Justification</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="6" style="color:var(--muted);text-align:center">No business functions defined yet.</td></tr>'}</tbody>
+    </table></div>
+  </div>
+  ${navBtns()}`;
+}
+
+function renderRisk() {
+  const likelihoods = ['Rare','Unlikely','Possible','Likely','Almost Certain'];
+  const impacts = ['Insignificant','Minor','Moderate','Major','Catastrophic'];
+  const treatments = ['Take','Treat','Transfer','Terminate'];
+
+  const rows = data.risk.map((r,i)=>`<tr>
+    <td><input value="${esc(r.name)}" oninput="data.risk[${i}].name=this.value" placeholder="Risk title"></td>
+    <td><textarea oninput="data.risk[${i}].description=this.value" placeholder="Description">${esc(r.description)}</textarea></td>
+    <td><textarea oninput="data.risk[${i}].rootCause=this.value" placeholder="Root cause">${esc(r.rootCause)}</textarea></td>
+    <td><textarea oninput="data.risk[${i}].existingControl=this.value" placeholder="Current controls in place">${esc(r.existingControl)}</textarea></td>
+    <td><select oninput="data.risk[${i}].likelihood=this.value">${likelihoods.map(l=>`<option ${r.likelihood===l?'selected':''}>${l}</option>`).join('')}</select></td>
+    <td><select oninput="data.risk[${i}].impact=this.value">${impacts.map(l=>`<option ${r.impact===l?'selected':''}>${l}</option>`).join('')}</select></td>
+    <td><input value="${esc(r.rating)}" oninput="data.risk[${i}].rating=this.value" placeholder="e.g. Extreme"></td>
+    <td><select oninput="data.risk[${i}].treatment=this.value">${treatments.map(t=>`<option ${r.treatment===t?'selected':''}>${t}</option>`).join('')}</select></td>
+    <td><textarea oninput="data.risk[${i}].additionalControl=this.value" placeholder="Additional controls">${esc(r.additionalControl)}</textarea></td>
+    <td><input value="${esc(r.pic)}" oninput="data.risk[${i}].pic=this.value" placeholder="PIC"></td>
+    <td>${rowBtns('risk',i)}</td>
+  </tr>`).join('');
+
+  return `
+  <div class="section-header"><h2>⚠️ 6.0 Risk Assessment</h2><p>Identify and assess risks that may impact your business functions.</p></div>
+  <div class="card">
+    <div class="tbl-wrap"><table class="dyn">
+      <thead><tr><th>Risk Name</th><th>Description</th><th>Root Cause</th><th>Existing Control</th><th>Likelihood</th><th>Impact</th><th>Risk Rating</th><th>Treatment</th><th>Additional Control</th><th>PIC</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <button class="btn-add" onclick="addRow('risk',{name:'',description:'',rootCause:'',existingControl:'',likelihood:'Unlikely',impact:'Moderate',rating:'',treatment:'Treat',additionalControl:'',pic:''})">+ Add Row</button>
+  </div>
+  ${navBtns()}`;
+}
+
+function renderStrategy() {
+  const s = data.strategy;
+  return `
+  <div class="section-header"><h2>🎯 7.0 Strategy & Recommendation</h2><p>Document the continuity strategies for your critical business functions.</p></div>
+  <div class="card">
+    <div class="card-title">System / Service Availability</div>
+    <div class="form-grid" style="grid-template-columns:1fr 1fr">
+      <div class="form-group"><label>Existing Strategy</label><textarea style="min-height:100px" oninput="data.strategy.systemAvailExisting=this.value">${esc(s.systemAvailExisting)}</textarea></div>
+      <div class="form-group"><label>Additional Strategy</label><textarea style="min-height:100px" oninput="data.strategy.systemAvailAdditional=this.value">${esc(s.systemAvailAdditional)}</textarea></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">System Recovery Plan</div>
+    <div class="form-grid" style="grid-template-columns:1fr 1fr">
+      <div class="form-group"><label>Existing Strategy</label><textarea style="min-height:100px" oninput="data.strategy.recoveryExisting=this.value">${esc(s.recoveryExisting)}</textarea></div>
+      <div class="form-group"><label>Additional Strategy</label><textarea style="min-height:100px" oninput="data.strategy.recoveryAdditional=this.value">${esc(s.recoveryAdditional)}</textarea></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Network / Recovery Plan</div>
+    <div class="form-grid" style="grid-template-columns:1fr 1fr">
+      <div class="form-group"><label>Existing Strategy</label><textarea style="min-height:100px" oninput="data.strategy.networkExisting=this.value">${esc(s.networkExisting)}</textarea></div>
+      <div class="form-group"><label>Additional Strategy</label><textarea style="min-height:100px" oninput="data.strategy.networkAdditional=this.value">${esc(s.networkAdditional)}</textarea></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Workplace Recovery</div>
+    <div class="form-group"><label>Existing Strategy</label><textarea style="min-height:80px" oninput="data.strategy.workplaceExisting=this.value">${esc(s.workplaceExisting)}</textarea></div>
+  </div>
+  ${navBtns()}`;
+}
+
+function renderReview() {
+  const c = data.cover;
+  const impactRows = data.impact.filter(imp=>data.bf.find(b=>b.name===imp.bf)).map(imp=>{
+    const final = calcFinal(imp);
+    const cl = critLabel(final);
+    return `<tr><td><strong>${esc(imp.bf)}</strong></td><td><span class="badge ${cl.badge}">${cl.label}</span></td><td><strong class="${cl.cls}">${(final*100).toFixed(1)}%</strong></td></tr>`;
+  }).join('');
+
+  const recoveryRows = data.recovery.filter(r=>data.bf.find(b=>b.name===r.bf)).map(r=>
+    `<tr><td>${esc(r.bf)}</td><td>${esc(r.rto)}</td><td>${esc(r.rpo)}</td><td>${esc(r.mbco)}</td><td>${esc(r.mtpd)}</td></tr>`
+  ).join('');
+
+  const riskRows = data.risk.map(r=>{
+    const cls = r.rating.toLowerCase()==='extreme'?'badge-crit':r.rating.toLowerCase()==='high'?'badge-crit':r.rating.toLowerCase()==='significant'?'badge-imp':'badge-mod';
+    return `<tr><td>${esc(r.name)}</td><td>${esc(r.likelihood)}</td><td>${esc(r.impact)}</td><td><span class="badge ${cls}">${esc(r.rating)}</span></td><td>${esc(r.treatment)}</td></tr>`;
+  }).join('');
+
+  return `
+  <div class="section-header"><h2>✅ Review & Export</h2><p>Review your BIA submission before exporting.</p></div>
+
+  <div class="card review-section">
+    <h3>Cover Information</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:13px">
+      <div><span style="color:var(--muted)">Business Unit:</span><br><strong>${esc(c.buName)||'—'}</strong></div>
+      <div><span style="color:var(--muted)">Team:</span><br><strong>${esc(c.teamName)||'—'}</strong></div>
+      <div><span style="color:var(--muted)">Prepared By:</span><br><strong>${esc(c.preparedBy)||'—'}</strong></div>
+      <div><span style="color:var(--muted)">Date:</span><br><strong>${esc(c.preparedDate)||'—'}</strong></div>
+      <div><span style="color:var(--muted)">Reviewed By:</span><br><strong>${esc(c.reviewedBy)||'—'}</strong></div>
+      <div><span style="color:var(--muted)">Version:</span><br><strong>${esc(c.version)||'—'}</strong></div>
+    </div>
+  </div>
+
+  <div class="card review-section">
+    <h3>Business Functions (${data.bf.length})</h3>
+    <table class="review-table">
+      <thead><tr><th>#</th><th>Name</th><th>Location</th><th>Type</th></tr></thead>
+      <tbody>${data.bf.map((b,i)=>`<tr><td>${i+1}</td><td><strong>${esc(b.name)}</strong></td><td>${esc(b.location)}</td><td>${esc(b.remarks)}</td></tr>`).join('')}</tbody>
+    </table>
+  </div>
+
+  <div class="card review-section">
+    <h3>Impact Ratings Summary</h3>
+    <table class="review-table">
+      <thead><tr><th>Business Function</th><th>Criticality Level</th><th>Final Score</th></tr></thead>
+      <tbody>${impactRows||'<tr><td colspan="3" style="color:var(--muted)">No scores entered.</td></tr>'}</tbody>
+    </table>
+  </div>
+
+  <div class="card review-section">
+    <h3>Recovery Objectives</h3>
+    <table class="review-table">
+      <thead><tr><th>Business Function</th><th>RTO</th><th>RPO</th><th>MBCO</th><th>MTPD</th></tr></thead>
+      <tbody>${recoveryRows||'<tr><td colspan="5" style="color:var(--muted)">No recovery objectives entered.</td></tr>'}</tbody>
+    </table>
+  </div>
+
+  <div class="card review-section">
+    <h3>Risk Register (${data.risk.length} risks)</h3>
+    <table class="review-table">
+      <thead><tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Rating</th><th>Treatment</th></tr></thead>
+      <tbody>${riskRows}</tbody>
+    </table>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn-secondary" onclick="prev()">← Previous</button>
+    <button class="btn-success" onclick="exportJSON()">⬇ Export JSON</button>
+    <button class="btn-primary" onclick="printForm()">🖨 Print / PDF</button>
+    <button class="btn-secondary" onclick="clearForm()" style="margin-left:auto;color:var(--red)">🗑 Clear All Data</button>
+  </div>`;
+}
+
+// ─── EXPORT / PRINT ───────────────────────────────────────────────────────────
+function exportJSON() {
+  saveData();
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `BIA_${data.cover.buName||'form'}_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+function printForm() {
+  window.print();
+}
+
+function clearForm() {
+  if(confirm('Clear all form data? This cannot be undone.')) {
+    data = defaultData();
+    saveData();
+    current = 0;
+    render();
+  }
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
